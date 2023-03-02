@@ -1,0 +1,35 @@
+.header-container {
+    height: 80px;
+    box-shadow: 0px 1px 1px 1px rgb(220, 220, 220);
+    margin: 0px !important;
+}
+
+.header-title {
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.header-link,
+.button-class {
+    background-color: rgb(20, 52, 164);
+    color: white;
+    margin: 10px;
+    padding: 6px 25px;
+    border-radius: 5px;
+}
+
+.header-link {
+    text-decoration: none;
+}
+
+.header-link:hover {
+    color: white
+}
+
+.button-class {
+    border: 0px;
+}
+
+.button-class:active {
+    padding: 4px 23px
+}

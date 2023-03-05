@@ -4,7 +4,7 @@ import ColumnAttribute from '../models/model.column';
 import './header.css'
 
 /* Field chooser component enables user to display the list of table fields. The default fields will be selected beforehand. Any
-field can be selected/removed from that list and this will display/hide that field from the grid table.
+field can be selected/removed from that list and this will display/hide that field from the grid table
 */
 const FieldChooser: React.FC<{ handleFieldSelect: (event: React.ChangeEvent<HTMLInputElement>, columnName: string) => void, handleHideFieldChooser: () => void }> = (props) => {
 

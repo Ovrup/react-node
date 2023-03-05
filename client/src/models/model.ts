@@ -1,4 +1,4 @@
-export default class Data {
+export type Data = {
     id: string;
     type: string;
     severity: string;
@@ -12,25 +12,17 @@ export default class Data {
     decoy_name: string;
     decoy_group: string;
     decoy_ip: string;
-    decoy_port: number;
+    decoy_port: number | string;
     decoy_type: string;
+}
 
-    constructor() {
-        this.id = "";
-        this.type = "";
-        this.severity = "";
-        this.kill_chain_phase = "";
-        this.timestamp = "";
-        this.attacker_id = "";
-        this.attacker_ip = "";
-        this.attacker_name = "";
-        this.attacker_port = 0;
-        this.decoy_id = 0;
-        this.decoy_name = "";
-        this.decoy_group = "";
-        this.decoy_ip = "";
-        this.decoy_port = 0;
-        this.decoy_type = "";
-    }
+export type optionsType = {
+    name: string,
+    value: string
+}
+
+export type uniqueValueType = {
+    name: string,
+    checked: boolean
 }
 

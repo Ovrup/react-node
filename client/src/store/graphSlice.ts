@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import Data from "../models/model";
+import { Data } from "../models/model";
 
 type InitialState = {
     graphData: Data[],

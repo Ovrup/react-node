@@ -11,7 +11,7 @@
 
 .header-link,
 .button-class {
-    background-color: rgb(20, 52, 164);
+    background-color: rgb(30, 60, 200);
     color: white;
     margin: 10px;
     padding: 6px 25px;
@@ -32,4 +32,35 @@
 
 .button-class:active {
     padding: 4px 23px
+}
+
+.close-button {
+    width: 25px;
+    height: 25px;
+    border-radius: 25px;
+    background-color: rgb(210, 4, 45);
+    color: white;
+    border: 0;
+    align-self: flex-end;
+}
+
+.field-chooser {
+    position: absolute;
+    left: 100%;
+    transform: translateX(-110%);
+    background-color: #fff;
+    width: 200px;
+    height: 300px;
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgb(0 0 0 / 18%);
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    padding: 20px;
+    z-index: 100;
+}
+
+.field-chooser input {
+    margin-right: 12px;
 }

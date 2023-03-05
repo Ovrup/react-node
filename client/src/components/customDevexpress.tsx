@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Data from "../models/model";
+import { Data } from "../models/model";
 import Filter from "./filter";
 import FieldChooser from "./fieldChooser";
 import ColumnAttribute from "../models/model.column"
@@ -27,7 +27,7 @@ const CustomDevexpress: React.FC<{ dataSource: Data[], columnsArray: ColumnAttri
     }
 
     return <div className="row">
-        <div className="filter-header col-12">
+        {/* <div className="filter-header col-12">
             <Filter handleShowFilter={() => {
                 setShowFilter((prevVal) => !prevVal)
             }} />
@@ -56,7 +56,7 @@ const CustomDevexpress: React.FC<{ dataSource: Data[], columnsArray: ColumnAttri
                     />
                 })}
             </DataGrid>
-        </div>
+        </div> */}
     </div>
 }
 

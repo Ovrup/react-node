@@ -38,7 +38,7 @@ app.get('/graph_range', async (req, res) => {
             $match: { 'timestamp': { "$gte": req.query.start, "$lte": req.query.end } }
         },
         {
-            $group: { _id: "$timestamp", count: { $sum: 1 } }
+            $group: { _id: "$" + `${req.query.type.toLocaleLowerCase()}`, count: { $sum: 1 } }
         }
     ]);
     res.send(graphData)

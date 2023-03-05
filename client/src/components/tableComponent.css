@@ -1,5 +1,5 @@
 .table_container {
-    margin: 0px 20px;
+    margin: 20px 20px;
 }
 
 
@@ -8,4 +8,14 @@
     align-items: center;
     justify-content: flex-end;
     margin: 5px;
+}
+
+.button-position {
+    position: relative;
+    left: 100%;
+    transform: translateX(-110%);
+}
+
+.field-chooser-container {
+    position: relative;
 }

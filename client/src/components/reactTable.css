@@ -69,7 +69,7 @@ table.react-table tbody tr td {
 .table-data {
     border: 0.1px solid #333;
     padding: 5px;
-    background-color: lightgray;
+    background-color: rgb(220, 220, 220);
 }
 
 .table-header {

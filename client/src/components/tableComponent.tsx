@@ -20,6 +20,7 @@ const TableComponent: React.FC = () => {
     useEffect(() => {
         fetch('/table').then((res) => res.json()).then((res) => {
             dispatch(tableAction.addTableData(res))
+            dispatch(tableAction.addTotalPageCount(Math.ceil(res.length / 20)))
         })
     }, [])
 

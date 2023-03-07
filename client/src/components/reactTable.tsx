@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Filter from './filter';
+import Pagination from './pagination';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { uniqueValueType } from '../models/model';
+import { Data, uniqueValueType } from '../models/model';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown, faArrowUp, faFilter } from '@fortawesome/free-solid-svg-icons';
 import './reactTable.css'
@@ -9,15 +10,19 @@ import { tableAction } from '../store/tableSlice';
 
 const ReactTable: React.FC = (props) => {
 
-    const tableData = useAppSelector((state) => state.table.tableData)
+
+    const pageSize = 20;
+
+    const tableData = useAppSelector((state) => state.table.tableData);
+    const totalPageCount = useAppSelector((state) => state.table.totalPageCount)
     const uniqueColumnVal = useAppSelector((state) => state.table.uniqueColumnVal)
-    const [filteredTableData, setFilteredTableData] = useState(tableData);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [filteredTableData, setFilteredTableData] = useState<Data[]>([]);
     const [showFilterVal, setShowFilterVal] = useState(false)
-    // const [uniqueColumnVal, setUniqueColumnVal] = useState<uniqueValueType[]>([])
     const [selectedColumn, setSelectedColumn] = useState<string>()
     const [index, setIndex] = useState<number>(-1)
 
-    const [sortingAsc, setSortingAsc] = useState<boolean>(true)
+    const [sortingAsc, setSortingAsc] = useState<boolean>(false)
 
     const newColumns = useAppSelector((state) => state.table.newColumns);
 
@@ -25,8 +30,8 @@ const ReactTable: React.FC = (props) => {
 
 
     useEffect(() => {
-        setFilteredTableData(tableData)
-    }, [tableData])
+        setFilteredTableData(tableData.slice(pageSize * (currentPage - 1), pageSize * currentPage))
+    }, [tableData, currentPage])
 
     useEffect(() => {
         showSortedTable(index)
@@ -62,7 +67,6 @@ const ReactTable: React.FC = (props) => {
             }
             ))
         }
-
         let uniqueValArray: uniqueValueType[] = JSON.parse(JSON.stringify(uniqueColumnVal));
 
         uniqueValArray = uniqueValArray.map((val) => {
@@ -75,10 +79,6 @@ const ReactTable: React.FC = (props) => {
                 return val
             }
         })
-
-
-        console.log(uniqueValArray);
-
         dispatch(tableAction.setUniqueColumnVal(uniqueValArray))
     }
 
@@ -93,8 +93,6 @@ const ReactTable: React.FC = (props) => {
                 uniqueValArray.push({ name: row[rowCell], checked: false })
             }
         })
-
-        // setUniqueColumnVal(uniqueValArray)
         dispatch(tableAction.setUniqueColumnVal(uniqueValArray))
     }
 
@@ -111,9 +109,7 @@ const ReactTable: React.FC = (props) => {
     const showSortedTable = (columnIndex: number) => {
 
         let sortingModifier = sortingAsc ? 1 : -1;
-
         const tBody = document.querySelector('table tbody')
-
         const rows = Array.from(document.querySelectorAll('table tbody tr'))
 
         const sortedRows = rows.sort((a, b) => {
@@ -130,69 +126,108 @@ const ReactTable: React.FC = (props) => {
         tBody?.append(...sortedRows)
     }
 
-    const handleSortedTable = (e: React.MouseEvent<HTMLSpanElement>, columnName: string, columnIndex: number) => {
-        setSortingAsc((prevSortingAsc) => !prevSortingAsc)
+    const handleSorting = (e: React.MouseEvent<HTMLSpanElement>, columnName: string, columnIndex: number) => {
+
+        let allHeaders = document.querySelectorAll('table.react-table thead tr th');
+
+        allHeaders.forEach((header) => {
+            header.querySelector('#asc')?.classList.remove('show');
+            header.querySelector('#desc')?.classList.remove('show')
+        })
+
+        let sortedHeader = allHeaders[columnIndex]
+
+        if (!sortingAsc) {
+            sortedHeader.querySelector('#asc')?.classList.add('show')
+            sortedHeader.querySelector('#desc')?.classList.add('hide')
+        }
+        else {
+            sortedHeader.querySelector('#desc')?.classList.add('show')
+            sortedHeader.querySelector('#asc')?.classList.add('hide')
+        }
+        setSortingAsc((currentSortingAsc) => !currentSortingAsc);
         setIndex(columnIndex)
     }
 
-    const handleSortingAscending = (e: React.MouseEvent<HTMLSpanElement>, columnName: string, columnIndex: number) => {
-        setSortingAsc(true);
-        setIndex(columnIndex)
+    const handlePageIncrement = () => {
+        if (currentPage === totalPageCount) {
+            setCurrentPage(1)
+        }
+        else {
+            setCurrentPage((previousPage) => previousPage + 1)
+        }
     }
 
-    const handleSortingDescending = (e: React.MouseEvent<HTMLSpanElement>, columnName: string, columnIndex: number) => {
-        setSortingAsc(false);
-        setIndex(columnIndex)
+    const handlePageDecrement = () => {
+        if (currentPage === 1) {
+            setCurrentPage(totalPageCount)
+        }
+        else {
+            setCurrentPage((previousPage) => previousPage - 1)
+        }
     }
 
-    // const handleInitialSort = (columnIndex: number) => {
-    //     setShowSortArrow(true);
-    //     showSortedTable(columnIndex)
-    // }
 
-    return <div className='react-table-wrapper'>
-        <table className='react-table'>
-            <thead>
-                <tr>
-                    {newColumns.map((column, idx) => {
-                        return <th
-                            key={column.dataField}
-                            className={(column.visible ? 'show ' : 'hide ') + 'table-header'}
-                        >
-                            <span onClick={() => handleFilterSelect(column.dataField)}><FontAwesomeIcon icon={faFilter} /></span>
-                            <span>{column.caption}</span>
-                            <span onClick={(e) => handleSortingAscending(e, column.caption, idx)}><FontAwesomeIcon icon={faArrowUp} /></span>
-                            <span onClick={(e) => handleSortingDescending(e, column.caption, idx)}><FontAwesomeIcon icon={faArrowDown} /></span>
-                        </th>
-                    })}
-                </tr>
-            </thead>
-
-            <tbody>
-
-                {filteredTableData.map((row) => {
-                    return <tr key={row.id}>
-                        {newColumns.map((column) => {
-                            type rowKey = keyof typeof row;
-                            const rowCell = column.dataField as rowKey;
-
-                            return <td
-                                className={(column.visible ? 'show ' : 'hide ') + 'table-data'}
+    return <div>
+        <div className='react-table-wrapper'>
+            <table className='react-table'>
+                <thead>
+                    <tr>
+                        {newColumns.map((column, idx) => {
+                            return <th
                                 key={column.dataField}
+                                className={(column.visible ? 'show ' : 'hide ') + 'table-header'}
                             >
-                                {(row[rowCell] || row[rowCell] === 0) ? row[rowCell] : 'NA'}
-                            </td>
+                                <span style={{ cursor: 'pointer' }} onClick={() => handleFilterSelect(column.dataField)}>
+                                    <FontAwesomeIcon icon={faFilter} />
+                                </span>
+
+                                <div onClick={(e) => handleSorting(e, column.caption, idx)}>
+                                    <span id='column-caption'>{column.caption}</span>
+                                    <span id='asc' className='hide'>
+                                        <FontAwesomeIcon icon={faArrowUp} />
+
+                                    </span>
+                                    <span id='desc' className='hide'>
+                                        <FontAwesomeIcon icon={faArrowDown} />
+                                    </span>
+                                </div>
+                            </th>
                         })}
                     </tr>
-                })}
+                </thead>
 
-            </tbody>
-        </table>
-        {showFilterVal && <Filter
-            handleCloseFilter={() => setShowFilterVal(false)}
-            handleSelectedValue={handleSelectedValue}
-        />}
+                <tbody>
 
+                    {filteredTableData.map((row) => {
+                        return <tr key={row.id}>
+                            {newColumns.map((column) => {
+                                type rowKey = keyof typeof row;
+                                const rowCell = column.dataField as rowKey;
+
+                                return <td
+                                    className={(column.visible ? 'show ' : 'hide ') + 'table-data'}
+                                    key={column.dataField}
+                                >
+                                    {(row[rowCell] || row[rowCell] === 0) ? row[rowCell] : 'NA'}
+                                </td>
+                            })}
+                        </tr>
+                    })}
+
+                </tbody>
+            </table>
+            {showFilterVal && <Filter
+                handleCloseFilter={() => setShowFilterVal(false)}
+                handleSelectedValue={handleSelectedValue}
+            />}
+
+        </div>
+        <Pagination
+            currentPage={currentPage}
+            handlePageIncrement={handlePageIncrement}
+            handlePageDecrement={handlePageDecrement}
+        />
     </div>
 }
 

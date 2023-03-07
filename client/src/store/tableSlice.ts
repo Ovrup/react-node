@@ -5,12 +5,14 @@ import ColumnAttribute from "../models/model.column";
 
 type InitialState = {
     tableData: Data[];
+    totalPageCount: number,
     newColumns: ColumnAttribute[],
     uniqueColumnVal: uniqueValueType[]
 }
 
 const initialState: InitialState = {
     tableData: [],
+    totalPageCount: 0,
     newColumns: [
         new ColumnAttribute('type', 'Type', 'string', 'left', true, true, '100px'),
         new ColumnAttribute('severity', 'Severity', 'string', 'left', true, false, '100px'),
@@ -37,6 +39,9 @@ const tableSlice = createSlice({
     reducers: {
         addTableData(state, action: PayloadAction<Data[]>) {
             state.tableData = action.payload
+        },
+        addTotalPageCount(state, action: PayloadAction<number>) {
+            state.totalPageCount = action.payload
         },
         setNewColumns(state, action: PayloadAction<ColumnAttribute[]>) {
             state.newColumns = action.payload

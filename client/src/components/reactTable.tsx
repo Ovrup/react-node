@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Filter from './filter';
 import Pagination from './pagination';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { Data, uniqueValueType } from '../models/model';
+import { Data, uniqueValueType, uniqueColumnType } from '../models/model';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowDown, faArrowUp, faFilter } from '@fortawesome/free-solid-svg-icons';
 import './reactTable.css'
@@ -14,13 +14,17 @@ const ReactTable: React.FC = (props) => {
     const pageSize = 20;
 
     const tableData = useAppSelector((state) => state.table.tableData);
+    const [filteredTableData, setFilteredTableData] = useState<Data[]>([])
     const totalPageCount = useAppSelector((state) => state.table.totalPageCount)
     const uniqueColumnVal = useAppSelector((state) => state.table.uniqueColumnVal)
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const [filteredTableData, setFilteredTableData] = useState<Data[]>([]);
+    const [paginatedTableData, setPaginatedTableData] = useState<Data[]>([]);
     const [showFilterVal, setShowFilterVal] = useState(false)
     const [selectedColumn, setSelectedColumn] = useState<string>()
     const [index, setIndex] = useState<number>(-1)
+    const [initialFilterSelect, setInitialFilterSelect] = useState<boolean>(true)
+
+    const uniqueVal = useRef(new Set())
 
     const [sortingAsc, setSortingAsc] = useState<boolean>(false)
 
@@ -28,10 +32,18 @@ const ReactTable: React.FC = (props) => {
 
     const dispatch = useAppDispatch();
 
+    useEffect(() => {
+        setFilteredTableData(tableData)
+    }, [tableData])
+
 
     useEffect(() => {
-        setFilteredTableData(tableData.slice(pageSize * (currentPage - 1), pageSize * currentPage))
+        setPaginatedTableData(tableData.slice(pageSize * (currentPage - 1), pageSize * currentPage))
     }, [tableData, currentPage])
+
+    useEffect(() => {
+        setPaginatedTableData(filteredTableData.slice(pageSize * (currentPage - 1), pageSize * currentPage))
+    }, [filteredTableData, currentPage])
 
     useEffect(() => {
         showSortedTable(index)
@@ -50,47 +62,84 @@ const ReactTable: React.FC = (props) => {
     }
 
 
-    const handleFilterValue = (selectedFilterVal: uniqueValueType, checked: boolean) => {
+    const handleFilterValue = (checked: boolean, selectedFilterVal: uniqueValueType) => {
+
         if (checked) {
-            setFilteredTableData(tableData.filter((row) => {
+
+            let currentFilteredRows = tableData.filter((row) => {
                 type rowKey = keyof typeof row;
                 const rowCell = selectedColumn as rowKey;
                 return String(row[rowCell]).includes(selectedFilterVal.name)
             }
-            ))
-        }
-        else {
-            setFilteredTableData(tableData.filter((row) => {
-                type rowKey = keyof typeof row;
-                const rowCell = selectedColumn as rowKey;
-                return String(row[rowCell]).includes("")
-            }
-            ))
-        }
-        let uniqueValArray: uniqueValueType[] = JSON.parse(JSON.stringify(uniqueColumnVal));
+            )
 
-        uniqueValArray = uniqueValArray.map((val) => {
-            if (val.name === selectedFilterVal.name) {
-                val.checked = checked;
-                return val
+            let totalFilteredRows = currentFilteredRows.length + filteredTableData.length
+
+            if (initialFilterSelect) {
+                setFilteredTableData(currentFilteredRows)
+                dispatch(tableAction.addTotalPageCount(Math.ceil(currentFilteredRows.length / 20)))
+                setInitialFilterSelect(false)
             }
             else {
-                val.checked = false;
-                return val
+                setFilteredTableData((previousData) => [...previousData, ...currentFilteredRows])
+                dispatch(tableAction.addTotalPageCount(Math.ceil(totalFilteredRows / 20)))
+            }
+
+        }
+        else {
+            let remainingFilterData = filteredTableData.filter((row) => {
+                type rowKey = keyof typeof row;
+                const rowCell = selectedColumn as rowKey;
+                return !String(row[rowCell]).includes(selectedFilterVal.name)
+            })
+
+
+            if (remainingFilterData.length === 0) {
+                setFilteredTableData(tableData);
+                dispatch(tableAction.addTotalPageCount(Math.ceil(tableData.length / 20)))
+            }
+            else {
+                setFilteredTableData(remainingFilterData);
+                dispatch(tableAction.addTotalPageCount(Math.ceil(remainingFilterData.length / 20)))
+            }
+
+        }
+
+        let uniqueValArray: uniqueColumnType = JSON.parse(JSON.stringify(uniqueColumnVal));
+        console.log('uniqueValArray check error', uniqueValArray);
+        console.log('selectedFilterVal check error', selectedFilterVal);
+
+
+        Object.entries(uniqueValArray).map(([key, value]) => {
+
+            if (key === selectedColumn) {
+                value.map((uniqueVal: uniqueValueType) => {
+                    if (uniqueVal.name === selectedFilterVal.name) {
+                        uniqueVal.checked = checked
+                        return uniqueVal
+                    }
+                    else {
+                        return uniqueVal
+                    }
+                })
+            }
+            else {
+                return value
             }
         })
+        console.log('uniqueValArray after select', uniqueValArray);
         dispatch(tableAction.setUniqueColumnVal(uniqueValArray))
     }
 
     const findUniqueColumnValue = (columnName: string) => {
-        let uniqueVal = new Set();
-        let uniqueValArray: any[] = []
+
+        let uniqueValArray = JSON.parse(JSON.stringify(uniqueColumnVal))
         tableData.map((row) => {
             type rowKey = keyof typeof row;
             const rowCell = columnName as rowKey;
-            if (!uniqueVal.has(row[rowCell])) {
-                uniqueVal.add(row[rowCell])
-                uniqueValArray.push({ name: row[rowCell], checked: false })
+            if (!uniqueVal.current.has(row[rowCell])) {
+                uniqueVal.current.add(row[rowCell])
+                uniqueValArray[columnName].push({ name: row[rowCell], checked: false })
             }
         })
         dispatch(tableAction.setUniqueColumnVal(uniqueValArray))
@@ -100,10 +149,7 @@ const ReactTable: React.FC = (props) => {
         findUniqueColumnValue(columnName)
         setShowFilterVal(true)
         setSelectedColumn(columnName)
-    }
 
-    const handleSelectedValue = (event: React.ChangeEvent<HTMLInputElement>, val: uniqueValueType) => {
-        handleFilterValue(val, event.target.checked)
     }
 
     const showSortedTable = (columnIndex: number) => {
@@ -150,6 +196,9 @@ const ReactTable: React.FC = (props) => {
     }
 
     const handlePageIncrement = () => {
+        console.log('in page increment', tableData);
+        console.log('in page increment', filteredTableData);
+
         if (currentPage === totalPageCount) {
             setCurrentPage(1)
         }
@@ -167,6 +216,16 @@ const ReactTable: React.FC = (props) => {
         }
     }
 
+    const updateCurrentPage = (buttonIndex: number) => {
+        setCurrentPage(buttonIndex)
+    }
+
+    const handleCloseFilter = () => {
+        setShowFilterVal(false)
+        dispatch(tableAction.addTableData(filteredTableData))
+        setInitialFilterSelect(true)
+    }
+
 
     return <div>
         <div className='react-table-wrapper'>
@@ -178,11 +237,11 @@ const ReactTable: React.FC = (props) => {
                                 key={column.dataField}
                                 className={(column.visible ? 'show ' : 'hide ') + 'table-header'}
                             >
-                                <span style={{ cursor: 'pointer' }} onClick={() => handleFilterSelect(column.dataField)}>
+                                <span className='cursor' onClick={() => handleFilterSelect(column.dataField)}>
                                     <FontAwesomeIcon icon={faFilter} />
                                 </span>
 
-                                <div onClick={(e) => handleSorting(e, column.caption, idx)}>
+                                <div className='cursor' onClick={(e) => handleSorting(e, column.caption, idx)}>
                                     <span id='column-caption'>{column.caption}</span>
                                     <span id='asc' className='hide'>
                                         <FontAwesomeIcon icon={faArrowUp} />
@@ -199,7 +258,7 @@ const ReactTable: React.FC = (props) => {
 
                 <tbody>
 
-                    {filteredTableData.map((row) => {
+                    {paginatedTableData.map((row) => {
                         return <tr key={row.id}>
                             {newColumns.map((column) => {
                                 type rowKey = keyof typeof row;
@@ -218,8 +277,9 @@ const ReactTable: React.FC = (props) => {
                 </tbody>
             </table>
             {showFilterVal && <Filter
-                handleCloseFilter={() => setShowFilterVal(false)}
-                handleSelectedValue={handleSelectedValue}
+                selectedColumn={selectedColumn}
+                handleCloseFilter={handleCloseFilter}
+                handleFilterValue={handleFilterValue}
             />}
 
         </div>
@@ -227,6 +287,7 @@ const ReactTable: React.FC = (props) => {
             currentPage={currentPage}
             handlePageIncrement={handlePageIncrement}
             handlePageDecrement={handlePageDecrement}
+            updateCurrentPage={updateCurrentPage}
         />
     </div>
 }

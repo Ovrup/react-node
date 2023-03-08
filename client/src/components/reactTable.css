@@ -66,18 +66,19 @@ table.react-table tbody tr td {
 }
 
 table.react-table tbody tr:nth-child(2n+1) {
-    background-color: rgb(39, 196, 175)
+
+    background-color: rgb(220, 233, 234)
 }
 
 .table-header,
 .table-data {
-    border: 0.1px solid #333;
+    border-right: 0.5px solid #999;
     padding: 5px;
 
 }
 
 .table-header {
-    background-color: rgb(220, 233, 234);
+    background-color: rgb(39, 196, 175);
     color: #333;
 }
 
@@ -94,7 +95,11 @@ table.react-table tbody tr:nth-child(2n+1) {
     justify-content: space-around;
 }
 
-.ascending,
-.descending {
-    color: #eee
+.cursor {
+    cursor: pointer;
+}
+
+span#asc,
+span#desc {
+    margin: 10px
 }

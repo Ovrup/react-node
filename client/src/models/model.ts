@@ -26,3 +26,20 @@ export type uniqueValueType = {
     checked: boolean
 }
 
+export type uniqueColumnType = {
+    type: uniqueValueType[];
+    severity: uniqueValueType[];
+    kill_chain_phase: uniqueValueType[];
+    timestamp: uniqueValueType[];
+    attacker_id: uniqueValueType[];
+    attacker_ip: uniqueValueType[];
+    attacker_name: uniqueValueType[];
+    attacker_port: uniqueValueType[];
+    decoy_id: uniqueValueType[];
+    decoy_name: uniqueValueType[];
+    decoy_group: uniqueValueType[];
+    decoy_ip: uniqueValueType[];
+    decoy_port: uniqueValueType[];
+    decoy_type: uniqueValueType[];
+}
+

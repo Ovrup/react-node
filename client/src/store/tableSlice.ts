@@ -1,13 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Data } from "../models/model";
-import { uniqueValueType } from "../models/model";
+import { uniqueValueType, uniqueColumnType } from "../models/model";
 import ColumnAttribute from "../models/model.column";
 
 type InitialState = {
     tableData: Data[];
     totalPageCount: number,
     newColumns: ColumnAttribute[],
-    uniqueColumnVal: uniqueValueType[]
+    uniqueColumnVal: uniqueColumnType
 }
 
 const initialState: InitialState = {
@@ -29,7 +29,22 @@ const initialState: InitialState = {
         new ColumnAttribute('decoy_port', 'Decoy port', 'number', 'left', true, false, '200px'),
         new ColumnAttribute('decoy_type', 'Decoy Type', 'string', 'left', true, false, '200px')
     ],
-    uniqueColumnVal: []
+    uniqueColumnVal: {
+        type: [],
+        severity: [],
+        kill_chain_phase: [],
+        timestamp: [],
+        attacker_id: [],
+        attacker_ip: [],
+        attacker_name: [],
+        attacker_port: [],
+        decoy_id: [],
+        decoy_name: [],
+        decoy_group: [],
+        decoy_ip: [],
+        decoy_port: [],
+        decoy_type: []
+    }
 }
 
 // This slice includes the part of the store that is associated with the table component
@@ -46,7 +61,7 @@ const tableSlice = createSlice({
         setNewColumns(state, action: PayloadAction<ColumnAttribute[]>) {
             state.newColumns = action.payload
         },
-        setUniqueColumnVal(state, action: PayloadAction<uniqueValueType[]>) {
+        setUniqueColumnVal(state, action: PayloadAction<uniqueColumnType>) {
             state.uniqueColumnVal = action.payload
         }
     }
